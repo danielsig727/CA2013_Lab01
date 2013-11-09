@@ -8,5 +8,8 @@ compile:
 compile_nv:
 	g++ -g -I $(INCLUDE_PATH) -DNV -c *.cc
 	g++ -o reduction *.o -lOpenCL
+compile_nv_srun:
+	g++ -g -I $(INCLUDE_PATH) -DNV -DSEPARATED_RUN -c *.cc
+	g++ -o reduction *.o -lOpenCL
 clean:
 	rm *.o *.bin reduction

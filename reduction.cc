@@ -19,6 +19,7 @@ errVerify( cl_int status, std::string msg = "" ){
     }
 }
 
+#ifndef SEPARATED_RUN
 void
 OclAddReduce::run(){
     /*Step 1: dectect & initialize platform*/
@@ -45,6 +46,37 @@ OclAddReduce::run(){
     /*Step 7: run kernel*/
     runKernel();
 }
+#else
+void
+OclAddReduce::runPrepare(){
+    /*Step 1: dectect & initialize platform*/
+    initPlatform();
+
+    /*Step 2: detect & initialize device*/
+    initDevice();
+
+    /*TA's Information Show Function*/
+    showInfo();
+
+    /*Step 3: create a context*/
+    initContext();
+
+    /*Step 4: create a command queue*/
+    initCommandQ();
+
+    /*Step 5: create device buffers*/
+    initDeviceMem();
+
+    /*Step 6: build program, and then create & set kernel*/
+    initKernel();
+}
+void
+OclAddReduce::run(){
+    /*Step 7: run kernel*/
+    runKernel();
+}
+
+#endif
 
 int
 OclAddReduce::getResult(){

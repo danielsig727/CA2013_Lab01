@@ -47,10 +47,17 @@ int main(int argc, char *argv[])
     genData( random_data );
 
     struct timeval start, end;
+#ifndef SEPARATED_RUN
     gettimeofday(&start, NULL);
     OclAddReduce reduce( random_data );
     reduce.run();
-    int device_result = reduce.getResult();
+#else
+    OclAddReduce reduce( random_data );
+	reduce.runPrepare();
+    gettimeofday(&start, NULL);
+    reduce.run();
+#endif
+	int device_result = reduce.getResult();
     gettimeofday(&end, NULL);
 
     int golden_result = 0;

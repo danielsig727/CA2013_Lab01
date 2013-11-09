@@ -12,6 +12,9 @@ class OclAddReduce{
             clear();
         };
         void run();
+#ifdef SEPARATED_RUN
+        void runPrepare();
+#endif
         int getResult();
     private:
         OclAddReduce( const OclAddReduce & );
