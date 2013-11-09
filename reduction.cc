@@ -62,13 +62,6 @@ OclAddReduce::getResult(){
     result = d[0];
     delete [] d; */
     return result;
-
-// testing
-    for(int i=0; i<DATA_SIZE; i++){
-        result += *(mHostData + i);
-    }
-
-    return result;
 }
 
 void
@@ -172,7 +165,6 @@ OclAddReduce::initKernel(){
 void
 OclAddReduce::runKernel(){
     cl_int status;
-    cl_event event;
     status = clSetKernelArg( mKernel, 1, sizeof(size_t), &DATA_SIZE);
     errVerify(status);
     size_t wsize;
@@ -186,15 +178,12 @@ OclAddReduce::runKernel(){
         status = clEnqueueNDRangeKernel( mCommandQ, mKernel, 1,
             0, &wsize, 0, 0, NULL, NULL );
         errVerify(status);
-//        clWaitForEvents(1, &event);
-//        std::cout<<"l("<<level<<","<<wsize<<")";
     }
 
 }
 
 void
 OclAddReduce::clear(){
-//return;
     /* Release the memory*/
     clReleaseKernel( mKernel );
     clReleaseProgram( mProgram );
