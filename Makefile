@@ -21,4 +21,4 @@ handin_test: gen_handin
 	cp handin/$(STUDENT_ID)/* handin/reduction/
 	cd hankin/reduction; make
 clean:
-	rm -r *.o *.bin reduction handin/*
+	rm -rf *.o *.bin reduction handin/*
