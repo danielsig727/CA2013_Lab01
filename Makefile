@@ -1,6 +1,6 @@
 .PHONY: clean
 INCLUDE_PATH += /opt/cuda/include 
-all: compile_nv
+all: compile
 compile:
 	g++ -g -I $(INCLUDE_PATH) -c *.cc
 	g++ -o reduction *.o -lOpenCL
@@ -8,7 +8,5 @@ compile:
 compile_nv:
 	g++ -g -I $(INCLUDE_PATH) -DNV -c *.cc
 	g++ -o reduction *.o -lOpenCL
-run:
-	./reduction
 clean:
 	rm *.o *.bin reduction
