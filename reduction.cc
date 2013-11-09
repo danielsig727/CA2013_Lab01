@@ -11,11 +11,11 @@
  *     http://www.khronos.org/registry/cl/sdk/1.2/docs/man/xhtml/
  */
 void
-errVerify( cl_int status ){
+errVerify( cl_int status, std::string msg = "" ){
     using std::cerr;
     using std::endl;
     if( status != CL_SUCCESS ){
-        cerr<<"There is something error("<<status<<")"<<endl;
+        cerr<<"There is something error("<<status<<", "<<msg<<")"<<endl;
     }
 }
 
@@ -132,7 +132,7 @@ void
 OclAddReduce::initContext(){
     cl_int status;
     mContext = clCreateContext( NULL, 1, mDevice, NULL, NULL, &status );
-    errVerify( status );
+    errVerify( status, "initContext" );
 }
 
 void
@@ -147,7 +147,7 @@ OclAddReduce::initDeviceMem(){
             DATA_SIZE * sizeof(int), NULL, &status );
     status = clEnqueueWriteBuffer( mCommandQ, mData, CL_FALSE, 0, 
             DATA_SIZE * sizeof(int), mHostData, 0, NULL, NULL );
-    errVerify( status );
+    errVerify( status, "initDeviceMem" );
 }
 
 void
@@ -156,13 +156,17 @@ OclAddReduce::initKernel(){
 
     // build program with binary
     // please use program "m2c" and do not rename addReduce.cl
+#ifndef NV
     buildWithBinary( mProgram, mContext, mDevice );
+#else
+    buildWithSource( mProgram, mContext, mDevice );
+#endif
 
     // create kernel
     mKernel = clCreateKernel( mProgram, "reduction_worker", &status );
     // setting kernel arguments
     status = clSetKernelArg( mKernel, 0, sizeof(cl_mem), &mData );
-    errVerify( status );
+    errVerify( status, "initKernel" );
 }
 
 void
