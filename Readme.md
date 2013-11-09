@@ -7,9 +7,9 @@ NCTU Computer Architecture 2013
 See: [Here](https://sites.google.com/a/g2.nctu.edu.tw/course2013fall_computerarchitecture/announcements/lab1addreductionwithopencl) 
 
 #### Compiling
-- ` % make ` for AMD + multi2sim solution. 
+- ` $ make ` for AMD + multi2sim solution. 
   This is the default method for the homework.
-- ` % make compile_nv ` for source based compilation.
+- ` $ make compile_nv ` for source based compilation.
   It's added for NV cards.
 
 #### Executing
