@@ -56,8 +56,10 @@ int main(int argc, char *argv[])
     int golden_result = 0;
     for (int i = 0; i < DATA_SIZE; ++i)
     {
+//        cout<<random_data[i]<<' ';
         golden_result += random_data[i];
     }
+    cout<<endl;
 
     if( golden_result != device_result ){
         cout<<"Result mismatch !!!"<<endl;

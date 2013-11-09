@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cassert>
 #include "utils.hh"
 #include "defines.hh"
 #include "reduction.hh"
@@ -14,13 +15,12 @@ errVerify( cl_int status ){
     using std::cerr;
     using std::endl;
     if( status != CL_SUCCESS ){
-        cerr<<"There is something error"<<endl;
+        cerr<<"There is something error("<<status<<")"<<endl;
     }
 }
 
 void
 OclAddReduce::run(){
-
     /*Step 1: dectect & initialize platform*/
     initPlatform();
 
@@ -49,6 +49,25 @@ OclAddReduce::run(){
 int
 OclAddReduce::getResult(){
     int result = 0;
+
+    clEnqueueReadBuffer( mCommandQ, mData, CL_TRUE, 
+            0, sizeof(int), &result, 0, NULL, NULL );
+
+/*    int *d = new int[DATA_SIZE];
+    clEnqueueReadBuffer( mCommandQ, mData, CL_TRUE, 
+            0, sizeof(int)*DATA_SIZE, d, 0, NULL, NULL );
+    for(int i=0; i<DATA_SIZE; i++)
+        std::cout<<d[i]<<' ';
+    std::cout<<std::endl;
+    result = d[0];
+    delete [] d; */
+    return result;
+
+// testing
+    for(int i=0; i<DATA_SIZE; i++){
+        result += *(mHostData + i);
+    }
+
     return result;
 }
 
@@ -123,31 +142,60 @@ OclAddReduce::initCommandQ(){
 
 void
 OclAddReduce::initDeviceMem(){
+    cl_int status;
+    mData = clCreateBuffer( mContext, CL_MEM_READ_WRITE, 
+            DATA_SIZE * sizeof(int), NULL, &status );
+    status = clEnqueueWriteBuffer( mCommandQ, mData, CL_FALSE, 0, 
+            DATA_SIZE * sizeof(int), mHostData, 0, NULL, NULL );
+    errVerify( status );
 }
 
 void
 OclAddReduce::initKernel(){
+    cl_int status;
 
     // build program with binary
     // please use program "m2c" and do not rename addReduce.cl
     buildWithBinary( mProgram, mContext, mDevice );
 
     // create kernel
-
+    mKernel = clCreateKernel( mProgram, "reduction_worker", &status );
     // setting kernel arguments
+    status = clSetKernelArg( mKernel, 0, sizeof(cl_mem), &mData );
+    errVerify( status );
 }
 
 void
 OclAddReduce::runKernel(){
+    cl_int status;
+    cl_event event;
+    status = clSetKernelArg( mKernel, 1, sizeof(size_t), &DATA_SIZE);
+    errVerify(status);
+    size_t wsize;
+    size_t odd; size_t dsize; unsigned int level;
+    for(odd = DATA_SIZE & 1, dsize = DATA_SIZE>>1, level = 1; 
+            dsize + odd ; 
+            odd = dsize & 1, dsize = dsize>>1, ++level){
+        status = clSetKernelArg( mKernel, 2, sizeof(unsigned int), &level );
+        errVerify(status);
+        wsize = dsize + odd;
+        status = clEnqueueNDRangeKernel( mCommandQ, mKernel, 1,
+            0, &wsize, 0, 0, NULL, NULL );
+        errVerify(status);
+//        clWaitForEvents(1, &event);
+//        std::cout<<"l("<<level<<","<<wsize<<")";
+    }
+
 }
 
 void
 OclAddReduce::clear(){
-
+//return;
     /* Release the memory*/
     clReleaseKernel( mKernel );
     clReleaseProgram( mProgram );
     clReleaseCommandQueue( mCommandQ );
+    clReleaseMemObject( mData );
     clReleaseContext( mContext );
     if( mDevice != NULL ) delete [] mDevice;
     if( mPlatform != NULL ) delete [] mPlatform;

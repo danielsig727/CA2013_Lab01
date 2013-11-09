@@ -38,6 +38,7 @@ class OclAddReduce{
         cl_kernel mKernel;
 
         /*Custom Data*/
+        cl_mem mData;
 };
 
 #endif /* end of include guard: REDUCTION_HH_UQLYSFW6 */
