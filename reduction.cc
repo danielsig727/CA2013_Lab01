@@ -16,6 +16,8 @@ errVerify( cl_int status, std::string msg = "" ){
     using std::endl;
     if( status != CL_SUCCESS ){
         cerr<<"There is something error("<<status<<", "<<msg<<")"<<endl;
+		cerr.flush();
+		exit(-1);
     }
 }
 
@@ -188,7 +190,12 @@ OclAddReduce::initKernel(){
 #endif
 
     // create kernel
+#ifndef MSCHED
     mKernel = clCreateKernel( mProgram, "reduction_worker", &status );
+#else
+    mKernel = clCreateKernel( mProgram, "reduction_worker_scheduler", &status );
+#endif
+
     // setting kernel arguments
     status = clSetKernelArg( mKernel, 0, sizeof(cl_mem), &mData );
     errVerify( status, "initKernel" );
@@ -200,15 +207,25 @@ OclAddReduce::runKernel(){
     status = clSetKernelArg( mKernel, 1, sizeof(size_t), &DATA_SIZE);
     errVerify(status);
     size_t wsize;
-    size_t odd; size_t dsize; unsigned int level;
+    size_t odd; size_t dsize; unsigned int level; 
+#ifdef MSCHED
+	size_t numKernel;
+#endif
     for(odd = DATA_SIZE & 1, dsize = DATA_SIZE>>1, level = 1; 
             dsize + odd ; 
             odd = dsize & 1, dsize = dsize>>1, ++level){
         status = clSetKernelArg( mKernel, 2, sizeof(unsigned int), &level );
         errVerify(status);
         wsize = dsize + odd;
+#ifndef MSCHED
         status = clEnqueueNDRangeKernel( mCommandQ, mKernel, 1,
             0, &wsize, 0, 0, NULL, NULL );
+#else
+		numKernel = (wsize > GPU_KERNLIM) ? GPU_KERNLIM : wsize;
+        status = clSetKernelArg( mKernel, 3, sizeof(size_t), &numKernel );
+		status = clEnqueueNDRangeKernel( mCommandQ, mKernel, 1,
+            0, &numKernel, 0, 0, NULL, NULL );
+#endif
         errVerify(status);
     }
 
