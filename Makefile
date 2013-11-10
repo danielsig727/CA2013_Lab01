@@ -20,6 +20,6 @@ gen_handin:
 handin_test: gen_handin
 	wget -O - 'https://sites.google.com/a/g2.nctu.edu.tw/course2013fall_computerarchitecture/announcements/lab1addreductionwithopencl/reduction.tar.bz2' | tar xjvf - -C handin
 	cp handin/$(STUDENT_ID)/* handin/reduction/
-	cd hankin/reduction; make
+	cd handin/reduction; make
 clean:
 	rm -rf *.o *.bin reduction handin/*
