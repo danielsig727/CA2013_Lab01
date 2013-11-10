@@ -1,6 +1,6 @@
 .PHONY: clean
 INCLUDE_PATH += /opt/cuda/include 
-CFLAGS += -DMSCHED
+#CFLAGS += -DMSCHED
 STUDENT_ID = 0250187
 all: compile
 compile:
