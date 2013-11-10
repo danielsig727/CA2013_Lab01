@@ -11,19 +11,22 @@
  *     http://www.khronos.org/registry/cl/sdk/1.2/docs/man/xhtml/
  */
 void
-errVerify( cl_int status, std::string msg = "" ){
+errVerify( cl_int status, std::string msg = "" )
+{
     using std::cerr;
     using std::endl;
-    if( status != CL_SUCCESS ){
+    if( status != CL_SUCCESS )
+    {
         cerr<<"There is something error("<<status<<", "<<msg<<")"<<endl;
-		cerr.flush();
-		exit(-1);
+        cerr.flush();
+        exit(-1);
     }
 }
 
 #ifndef SEPARATED_RUN
 void
-OclAddReduce::run(){
+OclAddReduce::run()
+{
     /*Step 1: dectect & initialize platform*/
     initPlatform();
 
@@ -50,7 +53,8 @@ OclAddReduce::run(){
 }
 #else
 void
-OclAddReduce::runPrepare(){
+OclAddReduce::runPrepare()
+{
     /*Step 1: dectect & initialize platform*/
     initPlatform();
 
@@ -73,7 +77,8 @@ OclAddReduce::runPrepare(){
     initKernel();
 }
 void
-OclAddReduce::run(){
+OclAddReduce::run()
+{
     /*Step 7: run kernel*/
     runKernel();
 }
@@ -81,25 +86,27 @@ OclAddReduce::run(){
 #endif
 
 int
-OclAddReduce::getResult(){
+OclAddReduce::getResult()
+{
     int result = 0;
 
-    clEnqueueReadBuffer( mCommandQ, mData, CL_TRUE, 
-            0, sizeof(int), &result, 0, NULL, NULL );
+    clEnqueueReadBuffer( mCommandQ, mData, CL_TRUE,
+                         0, sizeof(int), &result, 0, NULL, NULL );
 
-/*    int *d = new int[DATA_SIZE];
-    clEnqueueReadBuffer( mCommandQ, mData, CL_TRUE, 
-            0, sizeof(int)*DATA_SIZE, d, 0, NULL, NULL );
-    for(int i=0; i<DATA_SIZE; i++)
-        std::cout<<d[i]<<' ';
-    std::cout<<std::endl;
-    result = d[0];
-    delete [] d; */
+    /*    int *d = new int[DATA_SIZE];
+        clEnqueueReadBuffer( mCommandQ, mData, CL_TRUE,
+                0, sizeof(int)*DATA_SIZE, d, 0, NULL, NULL );
+        for(int i=0; i<DATA_SIZE; i++)
+            std::cout<<d[i]<<' ';
+        std::cout<<std::endl;
+        result = d[0];
+        delete [] d; */
     return result;
 }
 
 void
-OclAddReduce::initPlatform(){
+OclAddReduce::initPlatform()
+{
     cl_uint numPlatforms = 0;
 
     clGetPlatformIDs( 0, NULL, &numPlatforms );
@@ -108,7 +115,8 @@ OclAddReduce::initPlatform(){
 }
 
 void
-OclAddReduce::initDevice(){
+OclAddReduce::initDevice()
+{
     cl_uint numDevices = 0;
 
     clGetDeviceIDs( mPlatform[0], CL_DEVICE_TYPE_GPU, 0, NULL, &numDevices );
@@ -117,7 +125,8 @@ OclAddReduce::initDevice(){
 }
 
 void
-OclAddReduce::showInfo(){
+OclAddReduce::showInfo()
+{
     using std::cout;
     using std::endl;
 
@@ -145,9 +154,12 @@ OclAddReduce::showInfo(){
     cl_bool ava;
     clGetDeviceInfo( *mDevice, CL_DEVICE_AVAILABLE, sizeof( cl_bool), (void*) &ava, NULL);
     cout<<"Available: ";
-    if( ava == CL_TRUE ){
+    if( ava == CL_TRUE )
+    {
         cout<<"YES"<<endl;
-    } else {
+    }
+    else
+    {
         cout<<"NO"<<endl;
     }
 
@@ -156,29 +168,33 @@ OclAddReduce::showInfo(){
 }
 
 void
-OclAddReduce::initContext(){
+OclAddReduce::initContext()
+{
     cl_int status;
     mContext = clCreateContext( NULL, 1, mDevice, NULL, NULL, &status );
     errVerify( status, "initContext" );
 }
 
 void
-OclAddReduce::initCommandQ(){
+OclAddReduce::initCommandQ()
+{
     mCommandQ = clCreateCommandQueue( mContext, mDevice[0], 0, NULL );
 }
 
 void
-OclAddReduce::initDeviceMem(){
+OclAddReduce::initDeviceMem()
+{
     cl_int status;
-    mData = clCreateBuffer( mContext, CL_MEM_READ_WRITE, 
-            DATA_SIZE * sizeof(int), NULL, &status );
-    status = clEnqueueWriteBuffer( mCommandQ, mData, CL_FALSE, 0, 
-            DATA_SIZE * sizeof(int), mHostData, 0, NULL, NULL );
+    mData = clCreateBuffer( mContext, CL_MEM_READ_WRITE,
+                            DATA_SIZE * sizeof(int), NULL, &status );
+    status = clEnqueueWriteBuffer( mCommandQ, mData, CL_FALSE, 0,
+                                   DATA_SIZE * sizeof(int), mHostData, 0, NULL, NULL );
     errVerify( status, "initDeviceMem" );
 }
 
 void
-OclAddReduce::initKernel(){
+OclAddReduce::initKernel()
+{
     cl_int status;
 
     // build program with binary
@@ -202,29 +218,33 @@ OclAddReduce::initKernel(){
 }
 
 void
-OclAddReduce::runKernel(){
+OclAddReduce::runKernel()
+{
     cl_int status;
     status = clSetKernelArg( mKernel, 1, sizeof(size_t), &DATA_SIZE);
     errVerify(status);
     size_t wsize;
-    size_t odd; size_t dsize; unsigned int level; 
+    size_t odd;
+    size_t dsize;
+    unsigned int level;
 #ifdef MSCHED
-	size_t numKernel;
+    size_t numKernel;
 #endif
-    for(odd = DATA_SIZE & 1, dsize = DATA_SIZE>>1, level = 1; 
-            dsize + odd ; 
-            odd = dsize & 1, dsize = dsize>>1, ++level){
+    for(odd = DATA_SIZE & 1, dsize = DATA_SIZE>>1, level = 1;
+            dsize + odd ;
+            odd = dsize & 1, dsize = dsize>>1, ++level)
+    {
         status = clSetKernelArg( mKernel, 2, sizeof(unsigned int), &level );
         errVerify(status);
         wsize = dsize + odd;
 #ifndef MSCHED
         status = clEnqueueNDRangeKernel( mCommandQ, mKernel, 1,
-            0, &wsize, 0, 0, NULL, NULL );
+                                         0, &wsize, 0, 0, NULL, NULL );
 #else
-		numKernel = (wsize > GPU_KERNLIM) ? GPU_KERNLIM : wsize;
+        numKernel = (wsize > GPU_KERNLIM) ? GPU_KERNLIM : wsize;
         status = clSetKernelArg( mKernel, 3, sizeof(size_t), &numKernel );
-		status = clEnqueueNDRangeKernel( mCommandQ, mKernel, 1,
-            0, &numKernel, 0, 0, NULL, NULL );
+        status = clEnqueueNDRangeKernel( mCommandQ, mKernel, 1,
+                                         0, &numKernel, 0, 0, NULL, NULL );
 #endif
         errVerify(status);
     }
@@ -232,7 +252,8 @@ OclAddReduce::runKernel(){
 }
 
 void
-OclAddReduce::clear(){
+OclAddReduce::clear()
+{
     /* Release the memory*/
     clReleaseKernel( mKernel );
     clReleaseProgram( mProgram );
