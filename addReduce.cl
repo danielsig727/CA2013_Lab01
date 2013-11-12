@@ -51,13 +51,13 @@ __kernel void reduction_v2(
     uint nitems)
 {
 // Calculate local sum
-	uint idxMax = ntimes/4
+	uint idxMax = nitems/4;
 	uint vec_per_worker = idxMax / get_global_size(0);
 	uint idx = get_global_id(0) * vec_per_worker;
 	int4 psumv = 0;
 	int psum;
 	for( ; idx < idxMax ; ++idx ){
-		 psumv += data[idx]
+		 psumv += data[idx];
 	}
 	psum = psumv.x + psumv.y + psumv.z + psumv.w;
 
