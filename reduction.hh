@@ -46,8 +46,8 @@ private:
     /*Custom Data*/
     cl_mem mData;
     cl_mem mGrpResult;
-	cl_uint mComputeUnits;
-	size_t num_src_items;
+    cl_uint mComputeUnits;
+    size_t num_src_items;
 };
 
 #endif /* end of include guard: REDUCTION_HH_UQLYSFW6 */

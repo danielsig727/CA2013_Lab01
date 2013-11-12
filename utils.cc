@@ -60,7 +60,7 @@ buildWithBinary( cl_program &mProgram, cl_context &mContext, const cl_device_id*
 
     delete [] bin_content;
     int i = clBuildProgram( mProgram, 1, &mDevice[0], NULL, NULL, NULL );
-	assert(i == CL_SUCCESS);
+    assert(i == CL_SUCCESS);
 }
 
 void
