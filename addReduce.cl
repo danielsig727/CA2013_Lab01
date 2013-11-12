@@ -48,18 +48,30 @@ __kernel void reduction_v2(
     __global int4 *data,
     __global int *gsum,
     __local int *lsum,
-    uint nitems)
+    ulong nitems)
 {
 // Calculate local sum
     uint idxMax = nitems/4;
+    if( idxMax % get_global_size(0) != 0)
+        idxMax += get_global_size(0) - (idxMax % get_global_size(0));
     uint vec_per_worker = idxMax / get_global_size(0);
+    idxMax = nitems/4;
     uint idx = get_global_id(0) * vec_per_worker;
     int4 psumv = 0;
-    int psum;
-    for( ; idx < idxMax ; ++idx ) {
-        psumv += data[idx];
+    int psum = 0; int i = 0;
+    for( i=0 ; (i<vec_per_worker) && (idx < idxMax) ; ++idx, ++i ) {
+        psum += data[idx].x;
+        psum += data[idx].y;
+        psum += data[idx].z;
+        psum += data[idx].w;
+//        psumv += data[idx];
+/*        if(data[idx].x) psum++;
+        if(data[idx].y) psum++;
+        if(data[idx].z) psum++;
+        if(data[idx].w) psum++;*/
     }
-    psum = psumv.x + psumv.y + psumv.z + psumv.w;
+//    psum = psumv.x + psumv.y + psumv.z + psumv.w;
+//    psum = ;
 
 // Group reduction
     if( get_local_id(0) == 0 )
@@ -80,5 +92,7 @@ __kernel void reduction_v2_finalize(
     __global int *gsum
 )
 {
-    (void) atomic_add( gsum, gsum[get_global_id(0)]);
+    if(get_global_id(0) != 0)
+        (void) atomic_add( gsum, gsum[get_global_id(0)]);
+//    gsum[get_global_id(0)] = 3;
 }
