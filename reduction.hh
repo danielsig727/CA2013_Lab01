@@ -44,6 +44,7 @@ private:
 
     /*Custom Data*/
     cl_mem mData;
+	cl_uint mComputeUnits;
 };
 
 #endif /* end of include guard: REDUCTION_HH_UQLYSFW6 */

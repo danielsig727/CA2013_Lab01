@@ -122,6 +122,8 @@ OclAddReduce::initDevice()
     clGetDeviceIDs( mPlatform[0], CL_DEVICE_TYPE_GPU, 0, NULL, &numDevices );
     mDevice = new cl_device_id[ numDevices ];
     clGetDeviceIDs( mPlatform[0], CL_DEVICE_TYPE_GPU, numDevices, mDevice, NULL );
+
+	clGetDeviceInfo( *mDevice, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(cl_uint), &mComputeUnits, NULL);
 }
 
 void
@@ -150,6 +152,8 @@ OclAddReduce::showInfo()
     msg = new char[ msg_size ];
     clGetDeviceInfo( *mDevice, CL_DEVICE_NAME, msg_size, (void*) msg, NULL );
     cout<<"Device: "<<msg<<endl;
+
+	cout<<"Number of compute units: "<<mComputeUnits<<endl;
 
     cl_bool ava;
     clGetDeviceInfo( *mDevice, CL_DEVICE_AVAILABLE, sizeof( cl_bool), (void*) &ava, NULL);
