@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cassert>
+#include <cstring>
 #include "utils.hh"
 #include "defines.hh"
 #include "reduction.hh"
@@ -90,7 +91,9 @@ OclAddReduce::getResult()
 {
     int result = 0;
 
-    clEnqueueReadBuffer( mCommandQ, mData, CL_TRUE,
+//    clEnqueueReadBuffer( mCommandQ, mData, CL_TRUE,
+//                         0, sizeof(int), &result, 0, NULL, NULL );
+    clEnqueueReadBuffer( mCommandQ, mGrpResult, CL_TRUE,
                          0, sizeof(int), &result, 0, NULL, NULL );
 
     /*    int *d = new int[DATA_SIZE];
@@ -188,12 +191,23 @@ OclAddReduce::initCommandQ()
 void
 OclAddReduce::initDeviceMem()
 {
+	num_src_items = DATA_SIZE + (DATA_SIZE % 4);
     cl_int status;
     mData = clCreateBuffer( mContext, CL_MEM_READ_WRITE,
-                            DATA_SIZE * sizeof(int), NULL, &status );
+                            num_src_items * sizeof(int), NULL, &status );
     status = clEnqueueWriteBuffer( mCommandQ, mData, CL_FALSE, 0,
                                    DATA_SIZE * sizeof(int), mHostData, 0, NULL, NULL );
     errVerify( status, "initDeviceMem" );
+	if( num_src_items != DATA_SIZE){
+		size_t delta = num_src_items - DATA_SIZE;
+		int *zeros = new int[delta];
+		memset( zeros, 0, delta * sizeof(int) );
+	    status = clEnqueueWriteBuffer( mCommandQ, mData, CL_FALSE, DATA_SIZE * sizeof(int),
+    	                               delta * sizeof(int), mHostData, 0, NULL, NULL );
+		errVerify( status, "initDeviceMem" );
+		delete [] zeros;
+	}
+
 }
 
 void
@@ -210,22 +224,28 @@ OclAddReduce::initKernel()
 #endif
 
     // create kernel
-#ifndef MSCHED
+/*#ifndef MSCHED
     mKernel = clCreateKernel( mProgram, "reduction_worker", &status );
 #else
     mKernel = clCreateKernel( mProgram, "reduction_worker_scheduler", &status );
-#endif
+#endif*/
+    mKernel = clCreateKernel( mProgram, "reduction_v2", &status );
+    errVerify( status, "initKernel_rv2" );
+	mKernel2 = clCreateKernel( mProgram, "reduction_v2_finalize", &status );
+    errVerify( status, "initKernel_rv2f" );
 
     // setting kernel arguments
     status = clSetKernelArg( mKernel, 0, sizeof(cl_mem), &mData );
-    errVerify( status, "initKernel" );
+    errVerify( status, "initKernel_arg0" );
 }
 
 void
 OclAddReduce::runKernel()
 {
-    cl_int status;
-    status = clSetKernelArg( mKernel, 1, sizeof(size_t), &DATA_SIZE);
+	cl_int status;
+/*
+	// Smaller case use conventional kernel
+	status = clSetKernelArg( mKernel, 1, sizeof(size_t), &DATA_SIZE);
     errVerify(status);
     size_t wsize;
     size_t odd;
@@ -238,12 +258,12 @@ OclAddReduce::runKernel()
             dsize + odd ;
             odd = dsize & 1, dsize = dsize>>1, ++level)
     {
-        status = clSetKernelArg( mKernel, 2, sizeof(unsigned int), &level );
-        errVerify(status);
+   	    status = clSetKernelArg( mKernel, 2, sizeof(unsigned int), &level );
+       	errVerify(status);
         wsize = dsize + odd;
 #ifndef MSCHED
         status = clEnqueueNDRangeKernel( mCommandQ, mKernel, 1,
-                                         0, &wsize, 0, 0, NULL, NULL );
+   	                                     0, &wsize, 0, 0, NULL, NULL );
 #else
         numKernel = (wsize > GPU_KERNLIM) ? GPU_KERNLIM : wsize;
         status = clSetKernelArg( mKernel, 3, sizeof(size_t), &numKernel );
@@ -251,8 +271,40 @@ OclAddReduce::runKernel()
                                          0, &numKernel, 0, 0, NULL, NULL );
 #endif
         errVerify(status);
-    }
+*/
+		size_t global_work_size;
+		size_t local_work_size;
+		size_t num_groups;
+		cl_uint ws = 64;
+		global_work_size = mComputeUnits * 7 * ws; // 7 wavefronts per SIMD
+//		while( (num_src_items / 4) % global_work_size != 0 )
+//			global_work_size += ws;
+		local_work_size = ws;
+		num_groups = global_work_size / local_work_size;
 
+		mGrpResult = clCreateBuffer( mContext, CL_MEM_READ_WRITE,
+					  num_groups * sizeof(int), NULL, NULL);
+
+    	status = clSetKernelArg( mKernel, 1, sizeof(cl_mem*), &mData );
+    	errVerify( status, "runKernel_arg1" );
+     	status = clSetKernelArg( mKernel, 2, sizeof(cl_mem*), &mGrpResult );
+    	errVerify( status, "runKernel_arg2" );
+   		status = clSetKernelArg( mKernel, 3, sizeof(cl_int), NULL );
+    	errVerify( status, "runKernel_arg3" );
+   		status = clSetKernelArg( mKernel, 4, sizeof(num_src_items), &num_src_items );
+    	errVerify( status, "runKernel_arg4" );
+  		status = clSetKernelArg( mKernel2, 0, sizeof(cl_mem*), &mGrpResult );
+    	errVerify( status, "runKernel_arg0" );
+
+
+		status = clEnqueueNDRangeKernel( mCommandQ, mKernel, 1,
+	   	                                     0, &global_work_size, &local_work_size, 0, NULL, NULL );
+        errVerify(status);
+	
+		status = clEnqueueNDRangeKernel( mCommandQ, mKernel, 1,
+   	                                     0, &num_groups, 0, 0, NULL, NULL );
+        errVerify(status);
+		clFinish( mCommandQ );
 }
 
 void
