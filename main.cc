@@ -76,20 +76,23 @@ int main(int argc, char *argv[])
     }
     cout<<endl;
 
+    bool fail;
     if( golden_result != device_result )
     {
         cout<<"Result mismatch !!!"<<endl;
         cout<<"Golden: "<<golden_result<<endl;
         cout<<"Yours: "<<device_result<<endl;
+        fail = 1;
     }
     else
     {
         cout<<"Test pass, congraz !!!"<<endl;
+        fail = 0;
     }
 
     printElapsedTime( start, end );
 
     deleteData( random_data );
 
-    return 0;
+    return fail;
 }
