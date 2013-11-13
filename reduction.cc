@@ -93,15 +93,15 @@ OclAddReduce::getResult()
 
     clEnqueueReadBuffer( mCommandQ, mGrpResult, CL_TRUE,
                          0, sizeof(int), &result, 0, NULL, NULL );
-/*    int x=10;
-    int *d = new int[x];
-    clEnqueueReadBuffer( mCommandQ, mGrpResult, CL_TRUE,
-            0, sizeof(int)*x, d, 0, NULL, NULL );
-    for(int i=0; i<x; i++)
-        std::cout<<d[i]<<' ';
-    std::cout<<std::endl;
-    result = d[0];
-    delete [] d; */
+    /*    int x=10;
+        int *d = new int[x];
+        clEnqueueReadBuffer( mCommandQ, mGrpResult, CL_TRUE,
+                0, sizeof(int)*x, d, 0, NULL, NULL );
+        for(int i=0; i<x; i++)
+            std::cout<<d[i]<<' ';
+        std::cout<<std::endl;
+        result = d[0];
+        delete [] d; */
 
     return result;
 }
@@ -197,12 +197,12 @@ OclAddReduce::initDeviceMem()
                             num_src_items * sizeof(int), NULL, &status );
 
     int zero = 0;
-    status = clEnqueueFillBuffer( mCommandQ, mData, &zero, sizeof(int), 
-                                (num_src_items-4)*sizeof(int),
+    status = clEnqueueFillBuffer( mCommandQ, mData, &zero, sizeof(int),
+                                  (num_src_items-4)*sizeof(int),
                                   4*sizeof(int), 0, NULL, NULL );
 
     status = clEnqueueWriteBuffer( mCommandQ, mData, CL_FALSE, 0,
-                                  DATA_SIZE  * sizeof(int), mHostData, 0, NULL, NULL );
+                                   DATA_SIZE  * sizeof(int), mHostData, 0, NULL, NULL );
     errVerify( status, "initDeviceMem" );
 }
 

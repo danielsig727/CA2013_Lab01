@@ -11,7 +11,7 @@ __kernel void reduction_v2(
     uint vec_per_worker = idxMax / get_global_size(0);
     uint idx = get_global_id(0) * vec_per_worker;
     idxMax = min((uint) nitems/4, idx + vec_per_worker);
-    int psum = 0; 
+    int psum = 0;
     for( ; idx < idxMax ; ++idx ) {
         psum += data[idx].x;
         psum += data[idx].y;
