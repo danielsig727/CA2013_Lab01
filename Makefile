@@ -18,7 +18,7 @@ gen_handin:
 	cp addReduce.cl defines.hh reduction.cc reduction.hh handin/$(STUDENT_ID)
 	tar czf handin/$(STUDENT_ID).tar.gz handin/$(STUDENT_ID)
 handin_test: gen_handin
-	wget -O - 'https://sites.google.com/a/g2.nctu.edu.tw/course2013fall_computerarchitecture/announcements/lab1addreductionwithopencl/reduction.tar.bz2' | tar xjvf - -C handin
+	wget --no-check-certificate -O - 'https://sites.google.com/a/g2.nctu.edu.tw/course2013fall_computerarchitecture/announcements/lab1addreductionwithopencl/reduction.tar.bz2' | tar xjvf - -C handin
 	cp handin/$(STUDENT_ID)/* handin/reduction/
 	cd handin/reduction; make
 clean:
