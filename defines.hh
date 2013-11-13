@@ -8,7 +8,9 @@ extern size_t DATA_SIZE;
 #define MSCHED
 
 #ifndef NV
-#define GPU_KERNLIM 2560  // AMD HD7800
+// Following configurations are for AMD HD 7800
+#define GPU_KERNLIM 2560  
+#define GPU_CACHESIZE 16384
 #else
 #define GPU_KERNLIM 512   // NV 9500 GT
 #endif
