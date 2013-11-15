@@ -14,10 +14,11 @@ do
         else
             echo -n '.'
         fi
-        ctime=$(./reduction $RANDOM $size | awk '/^Kernel/ { print $3 }')
+        cmd="./reduction $RANDOM $size"
+        ctime=`$cmd | awk '/^Kernel/ { print \$3 }'`
         if [ "$ctime" == "" ] 
         then
-            echo "Error occurred!"
+            echo "Error occurred!: $cmd"
             exit
         fi
         stime=$(( $stime + $ctime ))
