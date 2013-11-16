@@ -1,0 +1,1 @@
+LIB=-lOpenCL -lpthread
