@@ -4,8 +4,12 @@ INCLUDE_PATH += /opt/cuda/include
 STUDENT_ID = 0250187
 all: compile
 compile:
-	g++ -g -I $(INCLUDE_PATH) $(CFLAGS) -c *.cc
+	g++ -I $(INCLUDE_PATH) $(CFLAGS) -c *.cc
 	g++ -o reduction *.o -lOpenCL
+	/opt/m2s42/bin/m2c --amd --amd-device Pitcairn addReduce.cl
+compile32:
+	g++ -m32 -I $(INCLUDE_PATH) $(CFLAGS) -c *.cc
+	g++ -m32 -o reduction *.o -lOpenCL
 	/opt/m2s42/bin/m2c --amd --amd-device Pitcairn addReduce.cl
 compile_srun:
 	g++ -g -I $(INCLUDE_PATH) -DSEPARATED_RUN $(CFLAGS) -c *.cc
