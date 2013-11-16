@@ -12,7 +12,7 @@ do
         then
             echo -n "$i" 1>&2
         else
-            echo -n '.'
+            echo -n '.' 1>&2
         fi
         cmd="./reduction $RANDOM $size"
         ctime=`$cmd | awk '/^Kernel/ { print \$3 }'`
