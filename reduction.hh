@@ -14,9 +14,9 @@ public:
         clear();
     };
     void run();
-#ifdef SEPARATED_RUN
-    void runPrepare();
-#endif
+    void run_cpu();
+    void run_gpu();
+    void getResult_gpu();
     int getResult();
 private:
     OclAddReduce( const OclAddReduce & );
@@ -48,6 +48,7 @@ private:
     cl_mem mGrpResult;
     cl_uint mComputeUnits;
     size_t num_src_items;
+    int result;
 };
 
 #endif /* end of include guard: REDUCTION_HH_UQLYSFW6 */

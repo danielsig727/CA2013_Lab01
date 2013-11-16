@@ -24,9 +24,25 @@ errVerify( cl_int status, std::string msg = "" )
     }
 }
 
-#ifndef SEPARATED_RUN
 void
 OclAddReduce::run()
+{
+    run_cpu();
+}
+
+void
+OclAddReduce::run_cpu()
+{
+    int rst = 0;
+#pragma omp parallel for reduction(+:rst)
+    for(int i=0; i<DATA_SIZE; i++){
+        rst = rst +  mHostData[i];
+    }
+    result = rst;
+}
+
+void
+OclAddReduce::run_gpu()
 {
     /*Step 1: dectect & initialize platform*/
     initPlatform();
@@ -52,45 +68,10 @@ OclAddReduce::run()
     /*Step 7: run kernel*/
     runKernel();
 }
-#else
+
 void
-OclAddReduce::runPrepare()
+OclAddReduce::getResult_gpu()
 {
-    /*Step 1: dectect & initialize platform*/
-    initPlatform();
-
-    /*Step 2: detect & initialize device*/
-    initDevice();
-
-    /*TA's Information Show Function*/
-    showInfo();
-
-    /*Step 3: create a context*/
-    initContext();
-
-    /*Step 4: create a command queue*/
-    initCommandQ();
-
-    /*Step 5: create device buffers*/
-    initDeviceMem();
-
-    /*Step 6: build program, and then create & set kernel*/
-    initKernel();
-}
-void
-OclAddReduce::run()
-{
-    /*Step 7: run kernel*/
-    runKernel();
-}
-
-#endif
-
-int
-OclAddReduce::getResult()
-{
-    int result = 0;
-
     clEnqueueReadBuffer( mCommandQ, mGrpResult, CL_TRUE,
                          0, sizeof(int), &result, 0, NULL, NULL );
     /*    int x=10;
@@ -102,7 +83,11 @@ OclAddReduce::getResult()
         std::cout<<std::endl;
         result = d[0];
         delete [] d; */
+}
 
+int
+OclAddReduce::getResult()
+{
     return result;
 }
 
@@ -275,6 +260,7 @@ OclAddReduce::runKernel()
 void
 OclAddReduce::clear()
 {
+    return;
     /* Release the memory*/
     clReleaseKernel( mKernel );
     clReleaseProgram( mProgram );

@@ -1,7 +1,7 @@
 .PHONY: clean
 include library.mk
 INCLUDE_PATH += /opt/cuda/include 
-#CFLAGS += -DMSCHED
+CFLAGS += -fopenmp 
 LFLAGS += $(LIB)
 STUDENT_ID = 0250187
 all: compile

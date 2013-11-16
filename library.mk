@@ -1,1 +1,1 @@
-LIB=-lOpenCL -lpthread
+LIB=-lOpenCL -lpthread -fopenmp
