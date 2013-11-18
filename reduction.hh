@@ -2,6 +2,8 @@
 #define __REDUCTION_HH_UQLYSFW6__
 
 #include "CL/cl.h"
+#define MIN(x, y) (((x) < (y))?(x):(y))
+#define MAX(x, y) (((x) > (y))?(x):(y))
 
 class OclAddReduce
 {
@@ -28,9 +30,10 @@ private:
     void showInfo();
     void initContext();
     void initCommandQ();
-    void initDeviceMem();
+    void initDeviceMem(size_t size);
     void initKernel();
-    void runKernel();
+    void runKernel_knl(size_t num_src_items);
+    void runKernel(size_t num_src_items, size_t step);
     void clear();
 
     /* Data */
@@ -49,6 +52,10 @@ private:
     cl_uint mComputeUnits;
     size_t num_src_items;
     int result;
+    size_t global_work_size;
+    size_t local_work_size;
+    size_t num_groups;
+
 };
 
 #endif /* end of include guard: REDUCTION_HH_UQLYSFW6 */
