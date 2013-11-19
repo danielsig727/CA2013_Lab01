@@ -36,19 +36,22 @@ OclAddReduce::run()
     p_cpu.size = p_cpu.size = 0;
 
     if( DATA_SIZE >= 400000000 ){
-        p_gpu.size = (DATA_SIZE >> 4) << 2; // /4 and mod 4 = 0
+        p_gpu.size = ((DATA_SIZE * 2/9) >> 2) << 2; // /4 and mod 4 = 0
         p_cpu.size = DATA_SIZE - p_gpu.size;
         p_gpu.data = mHostData;
         p_cpu.data = mHostData + p_gpu.size;
+        pthread_t t_cpu, t_gpu;
+        pthread_create(&t_gpu, NULL, (void* (*)(void*)) &run_wrapper, (void*) &p_gpu);
+//        pthread_create(&t_cpu, NULL, (void* (*)(void*)) &run_wrapper, (void*) &p_cpu);
+        std::cout<<"(cpu)"<<std::flush;
+        run_cpu(p_cpu.size, p_cpu.data);
+        std::cout<<"(cpu_finished)"<<std::flush;
+//        pthread_join(t_cpu, NULL);
+        pthread_join(t_gpu, NULL);        
+
     } else {
-        p_cpu.size = DATA_SIZE;
-        p_cpu.data = mHostData;
+        run_cpu(DATA_SIZE, mHostData);
     }
-    pthread_t t_cpu, t_gpu;
-    pthread_create(&t_gpu, NULL, (void* (*)(void*)) &run_wrapper, (void*) &p_gpu);
-    pthread_create(&t_cpu, NULL, (void* (*)(void*)) &run_wrapper, (void*) &p_cpu);
-    pthread_join(t_cpu, NULL);
-    pthread_join(t_gpu, NULL);
 }
 
 void*
@@ -61,11 +64,11 @@ OclAddReduce::run_wrapper( void *pv )
     if( p->is_cpu ){
         std::cout<<"(cpu)";
         p->obj->run_cpu(p->size, p->data);
-        std::cout<<"(cpu_finished)";
+        std::cout<<"(cpu_finished)"<<std::flush;
     }else{
         std::cout<<"(gpu)";
         p->obj->run_gpu(p->size, p->data);
-        std::cout<<"(gpu_finished)";
+        std::cout<<"(gpu_finished)"<<std::flush;
     }
     pthread_exit(NULL);
 }
