@@ -18,8 +18,13 @@ function test_for_size ()
             echo -n '.' 1>&2
         fi
         cmd="$program $RANDOM $size"
+        output=`$cmd`
+        if echo "$output" | grep -q "mismatch"; then
+            echo "Error occurred!: $cmd" 
+            exit
+        fi
         ctime=`$cmd | awk '/^Kernel/ { print \$3 }'`
-        if [ "$ctime" == "" ] 
+        if [[ "$ctime" == "" || $? -ne 0 ]]
         then
             echo "Error occurred!: $cmd"
             exit
@@ -52,9 +57,9 @@ echo "   " 1>&2
 echo "         PRESS CTRL+C TO ABORT NOW OR ANY KEY TO CONTINUE" 1>&2
 #read 1>&2
 
-runs=10
+runs=20
 
-for size in 110000000 500000000 1000000000 5000000000 10000000000 100000000000 500000000000 1000000000000
+for size in 110000000 500000000 1000000000 5000000000 10000000000 100000000000 500000000000 
 do
     test_for_size $size
 done
