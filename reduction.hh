@@ -60,7 +60,12 @@ private:
     size_t local_work_size;
     size_t num_groups;
 
-    struct t_params { OclAddReduce *obj; size_t size; int *data; char is_cpu; };
+    struct t_params {
+        OclAddReduce *obj;
+        size_t size;
+        int *data;
+        char is_cpu;
+    };
     static void* run_wrapper(void *p );
 
 };

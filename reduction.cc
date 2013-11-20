@@ -28,27 +28,26 @@ errVerify( cl_int status, std::string msg = "" )
 void
 OclAddReduce::run()
 {
-/*    run_gpu(DATA_SIZE/2, mHostData);
-    run_cpu(DATA_SIZE/2, mHostData + DATA_SIZE/2);*/
-    struct t_params p_cpu, p_gpu; 
+    struct t_params p_cpu, p_gpu;
     p_cpu.obj = p_gpu.obj = this;
-    p_cpu.is_cpu = 1; p_gpu.is_cpu = 0;
+    p_cpu.is_cpu = 1;
+    p_gpu.is_cpu = 0;
     p_cpu.size = p_cpu.size = 0;
 
-    if( DATA_SIZE >= 400000000 ){
+    if( DATA_SIZE >= 400000000 ) {
         p_gpu.size = ((DATA_SIZE * 2/9) >> 2) << 2; // /4 and mod 4 = 0
         p_cpu.size = DATA_SIZE - p_gpu.size;
         p_gpu.data = mHostData;
         p_cpu.data = mHostData + p_gpu.size;
-        pthread_t t_cpu, t_gpu;
+
+        pthread_t t_cpu;
         pthread_create(&t_gpu, NULL, (void* (*)(void*)) &run_wrapper, (void*) &p_gpu);
-//        pthread_create(&t_cpu, NULL, (void* (*)(void*)) &run_wrapper, (void*) &p_cpu);
+
         std::cout<<"(cpu)"<<std::flush;
         run_cpu(p_cpu.size, p_cpu.data);
         std::cout<<"(cpu_finished)"<<std::flush;
-//        pthread_join(t_cpu, NULL);
-        pthread_join(t_gpu, NULL);        
 
+        pthread_join(t_gpu, NULL);
     } else {
         run_cpu(DATA_SIZE, mHostData);
     }
@@ -59,13 +58,13 @@ OclAddReduce::run_wrapper( void *pv )
 {
     struct t_params *p = (struct t_params*) pv;
     if( p->size <= 0)
-        return NULL;
+        pthread_exit(NULL);
 
-    if( p->is_cpu ){
+    if( p->is_cpu ) {
         std::cout<<"(cpu)";
         p->obj->run_cpu(p->size, p->data);
         std::cout<<"(cpu_finished)"<<std::flush;
-    }else{
+    } else {
         std::cout<<"(gpu)";
         p->obj->run_gpu(p->size, p->data);
         std::cout<<"(gpu_finished)"<<std::flush;
@@ -79,10 +78,12 @@ OclAddReduce::run_cpu(size_t dsize, int *data)
 {
     int rst = 0;
     omp_set_num_threads(8);
-#pragma omp parallel for reduction(+:rst)
-    for(int i=0; i<dsize; i++){
+
+    #pragma omp parallel for reduction(+:rst)
+    for(int i=0; i<dsize; i++) {
         rst = rst +  data[i];
     }
+
     pthread_mutex_lock(&resultLock);
     result += rst;
     pthread_mutex_unlock(&resultLock);
@@ -258,9 +259,9 @@ OclAddReduce::initKernel()
 }
 
 void
-OclAddReduce::runKernel(size_t num_src_items, size_t dsize, size_t step, int *data){
+OclAddReduce::runKernel(size_t num_src_items, size_t dsize, size_t step, int *data) {
     cl_int status;
-    
+
     cl_uint ws = 32;
     global_work_size = mComputeUnits * 7 * ws; // 7 wavefronts per SIMD
 //		while( (num_src_items / 4) % global_work_size != 0 )
@@ -268,10 +269,10 @@ OclAddReduce::runKernel(size_t num_src_items, size_t dsize, size_t step, int *da
     local_work_size = 128;
     num_groups = global_work_size / local_work_size;
 
-/*    using std::cout;
-    using std::endl;
-    cout<<"nsi="<<num_src_items<<" dsize="<<dsize
-        <<"\ngws="<<global_work_size<<" lws="<<local_work_size<<" ng="<<num_groups<<endl;*/
+    /*    using std::cout;
+        using std::endl;
+        cout<<"nsi="<<num_src_items<<" dsize="<<dsize
+            <<"\ngws="<<global_work_size<<" lws="<<local_work_size<<" ng="<<num_groups<<endl;*/
 
     mGrpResult = clCreateBuffer( mContext, CL_MEM_READ_WRITE,
                                  num_groups * sizeof(int), NULL, NULL);
@@ -283,18 +284,18 @@ OclAddReduce::runKernel(size_t num_src_items, size_t dsize, size_t step, int *da
     status = clSetKernelArg( mKernel2, 0, sizeof(cl_mem*), &mGrpResult );
     errVerify( status, "runKernel_arg0" );
 
-
-    for(size_t i=0; i<num_src_items; i += step){
+    int zero = 0;
+    for(size_t i=0; i<num_src_items; i += step) {
         size_t size = MIN(step, num_src_items-i);
+        if(size == 0) break;
 
 //        std::cout<<"iter="<<i<<" size="<<size<<"\n";
 
-        int zero = 0;
-//        if(size >= 4){
-            status = clEnqueueFillBuffer( mCommandQ, mData, &zero, sizeof(int),
-                                          (size-4)*sizeof(int),
-                                          4*sizeof(int), 0, NULL, NULL );
-//        }
+        // size must >= 0 and multiple of 4 (since sum_src_itmes and step are)
+        // there's no need to check for size>=4
+        status = clEnqueueFillBuffer( mCommandQ, mData, &zero, sizeof(int),
+                                      (size-4)*sizeof(int),
+                                      4*sizeof(int), 0, NULL, NULL );
 
         status = clEnqueueWriteBuffer( mCommandQ, mData, CL_FALSE, 0,
                                        MIN(step, dsize-i)  * sizeof(int), data + i, 0, NULL, NULL );
@@ -316,7 +317,6 @@ OclAddReduce::runKernel_knl(size_t num_src_items)
 
     status = clSetKernelArg( mKernel, 3, sizeof(num_src_items), &num_src_items );
     errVerify( status, "runKernel_arg3" );
-
 
     status = clEnqueueNDRangeKernel( mCommandQ, mKernel, 1,
                                      0, &global_work_size, &local_work_size, 0, NULL, NULL );
