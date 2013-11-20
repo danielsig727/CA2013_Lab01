@@ -26,7 +26,7 @@ compile_nv_srun:
 gen_handin: 
 	mkdir handin/$(STUDENT_ID)
 	cp addReduce.cl defines.hh reduction.cc reduction.hh library.mk handin/$(STUDENT_ID)
-	tar czf handin/$(STUDENT_ID).tar.gz handin/$(STUDENT_ID)
+	cd handin; tar czf $(STUDENT_ID).tar.gz $(STUDENT_ID)
 handin_test: gen_handin
 	wget --no-check-certificate -O - 'https://sites.google.com/a/g2.nctu.edu.tw/course2013fall_computerarchitecture/announcements/lab1addreductionwithopencl/reduction.tar.bz2' | tar xjvf - -C handin
 	wget --no-check-certificate -O handin/reduction/Makefile 'https://sites.google.com/a/g2.nctu.edu.tw/course2013fall_computerarchitecture/announcements/lab1faq/Makefile'
