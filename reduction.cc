@@ -40,7 +40,7 @@ OclAddReduce::run()
         p_gpu.data = mHostData;
         p_cpu.data = mHostData + p_gpu.size;
 
-        pthread_t t_cpu;
+        pthread_t t_gpu;
         pthread_create(&t_gpu, NULL, (void* (*)(void*)) &run_wrapper, (void*) &p_gpu);
 
         std::cout<<"(cpu)"<<std::flush;
