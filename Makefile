@@ -29,8 +29,8 @@ gen_handin:
 	tar czf handin/$(STUDENT_ID).tar.gz handin/$(STUDENT_ID)
 handin_test: gen_handin
 	wget --no-check-certificate -O - 'https://sites.google.com/a/g2.nctu.edu.tw/course2013fall_computerarchitecture/announcements/lab1addreductionwithopencl/reduction.tar.bz2' | tar xjvf - -C handin
-	wget --no-check-certificate -O handin/Makefile 'https://sites.google.com/a/g2.nctu.edu.tw/course2013fall_computerarchitecture/announcements/lab1faq/Makefile'
-	cp handin/Makefile handin/reduction
+	wget --no-check-certificate -O handin/reduction/Makefile 'https://sites.google.com/a/g2.nctu.edu.tw/course2013fall_computerarchitecture/announcements/lab1faq/Makefile'
+	wget --no-check-certificate -O handin/reduction/utils.cc 'https://sites.google.com/a/g2.nctu.edu.tw/course2013fall_computerarchitecture/announcements/lab1faq/utils.cc'
 	cp handin/$(STUDENT_ID)/* handin/reduction/
 	cd handin/reduction; make
 clean:
