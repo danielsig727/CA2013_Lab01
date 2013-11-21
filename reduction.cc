@@ -77,11 +77,17 @@ void
 OclAddReduce::run_cpu(size_t dsize, int *data)
 {
     int rst = 0;
-    omp_set_num_threads(8);
 
-    #pragma omp parallel for reduction(+:rst)
-    for(int i=0; i<dsize; i++) {
-        rst = rst +  data[i];
+    if( dsize >= 40000 ){
+        omp_set_num_threads(8);
+        #pragma omp parallel for reduction(+:rst)
+        for(int i=0; i<dsize; i++) {
+            rst += data[i];
+        }
+    }else{
+        for(int i=0; i<dsize; i++) {
+            rst += data[i];
+        }
     }
 
     pthread_mutex_lock(&resultLock);
