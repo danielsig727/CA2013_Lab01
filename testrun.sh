@@ -43,6 +43,14 @@ then
     program=$1
 fi
 
+if [[ "$2" != "" && "$3" != "" ]]
+then
+    size=$2
+    runs=$3
+    test_for_size $size
+    exit
+fi
+
 for size in 1 10 100 1000 100000 1000000 10000000 105000000
 do
     test_for_size $size
